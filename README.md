@@ -1,2 +1,2 @@
 # CRUDeORM
-A really rudimentay/crude PostgreSQL ORM for Javascript
+A really rudimentary/crude PostgreSQL ORM for Javascript
