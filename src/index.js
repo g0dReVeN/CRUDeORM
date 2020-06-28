@@ -2,7 +2,7 @@ import { pool } from "./connection";
 import Schema from "./schema";
 import Model from "./model";
 
-class CRUDe {
+export default class CRUDe {
 	constructor(dbDetails = null) {
 		this.conn = pool(dbDetails);
 		this.client = null;
@@ -47,7 +47,3 @@ class CRUDe {
 		return null;
 	};
 };
-
-module.exports = {
-	crude: new CRUDe()
-}

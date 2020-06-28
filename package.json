@@ -2,11 +2,10 @@
 	"name": "crudeorm",
 	"version": "0.0.5",
 	"description": "My basic attempt at a PostgreSQL ORM for Node.js",
-	"main": "dist/index.js",
+	"main": "lib/index.js",
 	"scripts": {
 		"build": "npx babel src --out-dir lib",
-		"start": "npx babel src --watch --out-dir lib",
-		"dev": "node dist/test.js"
+		"start": "npx babel src --watch --out-dir lib"
 	},
 	"author": "Jordan Govender",
 	"license": "ISC",
