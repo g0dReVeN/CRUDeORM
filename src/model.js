@@ -1,10 +1,10 @@
+import { flatten } from "flat";
 import Record from "./record";
 import operatorEnum from "./enums/operatorEnum";
-import { flatten } from "flat";
 
 export default class Model {
 	constructor(table, conn) {
-        this.table = table;
+		this.table = table;
 		this.conn = conn;
 	}
 
@@ -16,6 +16,22 @@ export default class Model {
 		}
 
 		return ref;
+	}
+
+	whereBuilder(fields) {
+		let i = 0;
+
+		return Object.entries(fields).reduce((acc, curr) => {
+			if (++i > 1) acc += " AND ";
+
+			if (typeof curr[1] === "object") {
+				return (acc += Object.entries(curr[1]).reduce((acc2, curr2, j) => {
+					if (j > 0) acc2 += " AND ";
+
+					return (acc2 += `${curr[0]} ${operatorEnum[curr2[0]]} $${(i += j)}`);
+				}, ""));
+			} else return (acc += `${curr[0]} ${operatorEnum["$eq"]} $${i}`);
+		}, "");
 	}
 
 	async insert(fields) {
@@ -32,16 +48,22 @@ export default class Model {
 				values: Object.values(fields),
 			};
 
-			this.conn
+			return this.conn
 				.query(query)
-				.then((res) => console.log("Data inserted successful")) // return this
+				.then((res) => {
+					if (res.rows.length) {
+						return new Record(this.table, res.rows[0], this.conn);
+					} else {
+						return null;
+					}
+				})
 				.catch((error) => console.error(error.stack));
 		} catch (error) {
 			console.error(error.stack);
 		}
 	}
 
-	async find(fields, constraints = "") {
+	static async destroy(fields, constraints = "") {
 		try {
 			const keys = Object.keys(fields);
 
@@ -49,49 +71,59 @@ export default class Model {
 				throw "Find parameters less than 1";
 			}
 
-			let i = 0;
-
-			const conditions = Object.entries(fields).reduce((acc, curr) => {
-				if (++i > 1) acc += " AND ";
-
-				if (typeof curr[1] === "object") {
-					return (acc += Object.entries(curr[1]).reduce((acc2, curr2, j) => {
-						if (j > 0) acc2 += " AND ";
-
-						return (acc2 += `${curr[0]} ${operatorEnum[curr2[0]]} $${(i += j)}`);
-					}, ""));
-				} else return (acc += `${curr[0]} ${operatorEnum["$eq"]} $${i}`);
-			}, "");
-
 			const query = {
-				text: `SELECT * FROM ${this.table} WHERE ${conditions} ${constraints}`,
+				text: `DELETE FROM ${this.table} WHERE ${this.whereBuilder(fields)} ${constraints}`,
 				values: Object.values(flatten(fields)),
 			};
 
 			return this.conn
 				.query(query)
 				.then((res) => {
-                    if (res.rows.length === 1) {
-                        return new Record(this.table, res.rows[0], this.conn);
-                    } else if (res.rows.length > 1) {
-                        return res.rows.reduce((acc, curr) => {
-                            return acc.push(new Record(this.table, curr, this.conn));
-                        }, []);
-                    } else {
-                        return null;
-                    }
-                }) 
+					return res;
+				})
 				.catch((error) => console.error(error.stack));
 		} catch (error) {
 			console.error(error.stack);
 		}
 	}
 
-	async findOne(fields) {
-		return this.find(fields, "LIMIT 1");
+	static async find(fields, constraints = "", singleRecord = false) {
+		try {
+			const keys = Object.keys(fields);
+
+			if (keys.length < 1) {
+				throw "Find parameters less than 1";
+			}
+
+			const query = {
+				text: `SELECT * FROM ${this.table} WHERE ${this.whereBuilder(fields)} ${constraints}`,
+				values: Object.values(flatten(fields)),
+			};
+
+			return this.conn
+				.query(query)
+				.then((res) => {
+					if (singleRecord && res.rows.length) {
+						return new Record(this.table, res.rows[0], this.conn);
+					} else if (res.rows.length) {
+						return res.rows.reduce((acc, curr) => {
+							return acc.push(new Record(this.table, curr, this.conn));
+						}, []);
+					} else {
+						return null;
+					}
+				})
+				.catch((error) => console.error(error.stack));
+		} catch (error) {
+			console.error(error.stack);
+		}
 	}
 
-	async findById(fields) {
-		return this.find({ id: fields }, "LIMIT 1");
-    }
+	static async findOne(fields, constraints = "") {
+		return this.find(fields, constraints + " LIMIT 1", true);
+	}
+
+	static async findById(fields, constraints = "") {
+		return this.find({ id: fields }, constraints + " LIMIT 1", true);
+	}
 }
