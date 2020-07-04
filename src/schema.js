@@ -19,7 +19,7 @@ export default class Schema {
 
 			this.conn
 				.query(sql)
-				.then((res) => console.log("Table is successfully created")) // return this
+				.then((res) => console.log("Table created successfully"))
 				.catch((error) => console.error(error.stack));
 		} catch (error) {
 			console.error(error.stack);

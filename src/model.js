@@ -8,17 +8,7 @@ export default class Model {
 		this.conn = conn;
 	}
 
-	reduceRef(count) {
-		let ref = "";
-
-		for (let i = 2; i <= count; i++) {
-			ref += `, $${i}`;
-		}
-
-		return ref;
-	}
-
-	whereBuilder(fields) {
+	static whereBuilder(fields) {
 		let i = 0;
 
 		return Object.entries(fields).reduce((acc, curr) => {
@@ -44,18 +34,18 @@ export default class Model {
 
 			const query = {
 				text: `INSERT INTO ${this.table}(${keys.join(",")})
-                        VALUES($1${this.reduceRef(keys.length)})`,
+						VALUES(${keys.reduce((acc, key, i) => {
+							if (i > 0) { acc += `, $${i + 1}`; }
+							return acc;
+						}, '$1')})
+						RETURNING *`,
 				values: Object.values(fields),
 			};
 
 			return this.conn
 				.query(query)
 				.then((res) => {
-					if (res.rows.length) {
-						return new Record(this.table, res.rows[0], this.conn);
-					} else {
-						return null;
-					}
+					return new Record(this.table, res.rows[0], this.conn);
 				})
 				.catch((error) => console.error(error.stack));
 		} catch (error) {
@@ -72,15 +62,15 @@ export default class Model {
 			}
 
 			const query = {
-				text: `DELETE FROM ${this.table} WHERE ${this.whereBuilder(fields)} ${constraints}`,
+				text: `DELETE FROM ${this.table} WHERE ${this.whereBuilder(
+					fields
+				)} ${constraints}`,
 				values: Object.values(flatten(fields)),
 			};
 
 			return this.conn
 				.query(query)
-				.then((res) => {
-					return res;
-				})
+				.then((res) => console.log("Data deleted successfully"))
 				.catch((error) => console.error(error.stack));
 		} catch (error) {
 			console.error(error.stack);
@@ -96,7 +86,9 @@ export default class Model {
 			}
 
 			const query = {
-				text: `SELECT * FROM ${this.table} WHERE ${this.whereBuilder(fields)} ${constraints}`,
+				text: `SELECT * FROM ${this.table} WHERE ${this.whereBuilder(
+					fields
+				)} ${constraints}`,
 				values: Object.values(flatten(fields)),
 			};
 
@@ -125,5 +117,9 @@ export default class Model {
 
 	static async findById(fields, constraints = "") {
 		return this.find({ id: fields }, constraints + " LIMIT 1", true);
+	}
+
+	static async destroyById(fields, constraints = "") {
+		return this.destroy({ id: fields }, constraints);
 	}
 }

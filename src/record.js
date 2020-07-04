@@ -34,7 +34,7 @@ export default class Record {
     
             this.conn
                 .query(query)
-                .then((res) => console.log("Data saved successful")) // return this
+                .then((res) => console.log("Data saved successfully"))
                 .catch((error) => console.error(error.stack));
         } catch (error) {
             console.error(error.stack);

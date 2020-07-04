@@ -33,12 +33,20 @@ export default class CRUDe {
 
 		if (schema instanceof Schema && modelName) {
 			const modelClass = class extends Model {
-				constructor(fields = null) {
+				constructor(fields) {
 					super(schema.table, crude);
 
 					if (fields) {
-						this.insert(fields);
+						return this.insert(fields);
 					}
+				}
+
+				static get table() {
+					return schema.table;
+				}
+
+				static get conn() {
+					return crude;
 				}
 			};
 
