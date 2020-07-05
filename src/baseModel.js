@@ -15,7 +15,7 @@ export default class Model {
 		return Object.entries(fields).reduce((acc, curr) => {
 			if (++index.i > startPos + 1) acc += concatentor;
 
-			if (typeof curr[1] === "object") {
+			if (typeof curr[1] === "object" && curr[1].constructor.name === 'Object') {
 				return (acc += Object.entries(curr[1]).reduce((acc2, curr2, j) => {
 					if (j > 0) acc2 += concatentor;
 
