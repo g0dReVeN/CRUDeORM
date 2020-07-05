@@ -1,4 +1,11 @@
 export default async function (table, fields, crude) {
+    let __constraints = '';
+
+    if (fields.hasOwnProperty('__constraints')) {
+        __constraints = fields.__constraints;
+        delete fields.__constraints;
+    }
+
 	const sql = `
 				CREATE TABLE IF NOT EXISTS ${table} (
 				id SERIAL PRIMARY KEY,

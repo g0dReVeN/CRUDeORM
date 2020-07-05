@@ -9,19 +9,21 @@ export default class Model {
 		this.debug = crude.debug;
 	}
 
-	static whereBuilder(fields) {
-		let i = 0;
+	static referenceBuilder(fields, index = { i: 0 }, concatentor = " AND ") {
+		const startPos = index.i;
 
 		return Object.entries(fields).reduce((acc, curr) => {
-			if (++i > 1) acc += " AND ";
+			if (++index.i > startPos + 1) acc += concatentor;
 
 			if (typeof curr[1] === "object") {
 				return (acc += Object.entries(curr[1]).reduce((acc2, curr2, j) => {
-					if (j > 0) acc2 += " AND ";
+					if (j > 0) acc2 += concatentor;
 
-					return (acc2 += `${curr[0]} ${operatorEnum[curr2[0]]} $${(i += j)}`);
+					return (acc2 += `${curr[0]} ${
+						operatorEnum[curr2[0]]
+					} $${(index.i += j)}`);
 				}, ""));
-			} else return (acc += `${curr[0]} ${operatorEnum["$eq"]} $${i}`);
+			} else return (acc += `${curr[0]} ${operatorEnum["$eq"]} $${index.i}`);
 		}, "");
 	}
 
@@ -55,39 +57,14 @@ export default class Model {
 		}
 	}
 
-	static async destroy(fields, constraints = "") {
-		try {
-			const keys = Object.keys(fields);
-
-			if (keys.length < 1) {
-				throw "Find parameters less than 1";
-			}
-
-			const query = {
-				text: `DELETE FROM ${this.table} WHERE ${this.whereBuilder(
-					fields
-				)} ${constraints}`,
-				values: Object.values(flatten(fields)),
-			};
-
-			await this.conn.query(query);
-
-			if (this.debug) console.log("Data deleted successfully");
-		} catch (error) {
-			console.error(error.stack);
-		}
-	}
-
 	static async find(fields, constraints = "", singleRecord = false) {
 		try {
-			const keys = Object.keys(fields);
-
-			if (keys.length < 1) {
+			if (Object.keys(fields).length < 1) {
 				throw "Find parameters less than 1";
 			}
 
 			const query = {
-				text: `SELECT * FROM ${this.table} WHERE ${this.whereBuilder(
+				text: `SELECT * FROM ${this.table} WHERE ${this.referenceBuilder(
 					fields
 				)} ${constraints}`,
 				values: Object.values(flatten(fields)),
@@ -108,6 +85,70 @@ export default class Model {
 			} else {
 				return null;
 			}
+		} catch (error) {
+			console.error(error.stack);
+		}
+	}
+
+	static async update(updateFields, selectFields = null, constraints = "") {
+		try {
+			const updateValues = Object.values(updateFields);
+
+			if (updateValues.length < 1) {
+				throw "Update parameters less than 1";
+			} else if (updateFields.hasOwnProperty("id")) {
+				throw "id field found in update fields";
+			}
+
+			let selectValues = null;
+
+			if (selectFields !== null) {
+				selectValues = Object.values(selectFields);
+
+				if (selectValues.length < 1) {
+					throw "Select parameters less than 1";
+				}
+			}
+
+			const i = {
+				i: 0,
+			};
+
+			const query = {
+				text: `UPDATE ${this.table}
+                        SET ${this.referenceBuilder(updateFields, i, ", ")}
+                        ${
+													selectValues
+														? "WHERE " + this.referenceBuilder(selectFields, i)
+														: ""
+												} ${constraints}`,
+				values: selectValues ? updateValues.concat(selectValues) : updateValues,
+			};
+
+			await this.conn.query(query);
+
+			if (this.debug) console.log("Data updated successfully");
+		} catch (error) {
+			console.error(error.stack);
+		}
+	}
+
+	static async destroy(fields, constraints = "") {
+		try {
+			if (Object.keys(fields).length < 1) {
+				throw "Find parameters less than 1";
+			}
+
+			const query = {
+				text: `DELETE FROM ${this.table} WHERE ${this.referenceBuilder(
+					fields
+				)} ${constraints}`,
+				values: Object.values(flatten(fields)),
+			};
+
+			await this.conn.query(query);
+
+			if (this.debug) console.log("Data deleted successfully");
 		} catch (error) {
 			console.error(error.stack);
 		}

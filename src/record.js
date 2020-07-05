@@ -17,12 +17,7 @@ export default class Record {
 
 			const query = {
 				text: `UPDATE ${this.__table}
-                        SET ${this.__attributeList
-													.map(
-														(attribute, index) => `${attribute} = $${index + 1}`
-													)
-													.join(",")}
-                            ${this.__attributeList.reduce((acc, attribute) => {
+                        SET ${this.__attributeList.reduce((acc, attribute) => {
 															if (attribute === "id") return acc;
 															if (acc === "")
 																return `${attribute} = $${(i += 1)}`;
