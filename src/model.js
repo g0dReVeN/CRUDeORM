@@ -42,12 +42,14 @@ export default class Model {
 				values: Object.values(fields),
 			};
 
-			return this.conn
-				.query(query)
-				.then((res) => {
-					return new Record(this.table, res.rows[0], this.conn);
-				})
-				.catch((error) => console.error(error.stack));
+			// return this.conn
+			// 	.query(query)
+			// 	.then((res) => {
+			// 		return new Record(this.table, res.rows[0], this.conn);
+			// 	})
+			// 	.catch((error) => console.error(error.stack));
+			const res = await this.conn.query(query);
+			return new Record(this.table, res.rows[0], this.conn);
 		} catch (error) {
 			console.error(error.stack);
 		}

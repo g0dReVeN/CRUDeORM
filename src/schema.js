@@ -1,28 +1,13 @@
-export default class Schema {
-	constructor(table, fields, conn) {
-		this.table = table;
-		this.fields = fields;
-		this.conn = conn;
+export default async function (table, fields, conn) {
+	const sql = `
+				CREATE TABLE IF NOT EXISTS ${table} (
+				id SERIAL PRIMARY KEY,
+				${Object.keys(fields)
+					.map((key) => `${key} ${fields[key]}`)
+					.join(",")}
+				);`;
 
-		this.createTable();
-	}
-
-	async createTable() {
-		try {
-			const sql = `
-                        CREATE TABLE IF NOT EXISTS ${this.table} (
-                        id SERIAL PRIMARY KEY,
-                        ${Object.keys(this.fields)
-													.map((key) => `${key} ${this.fields[key]}`)
-													.join(",")}
-                        );`;
-
-			this.conn
-				.query(sql)
-				.then((res) => console.log("Table created successfully"))
-				.catch((error) => console.error(error.stack));
-		} catch (error) {
-			console.error(error.stack);
-		}
-	}
+	await conn.query(sql);
+	console.log("Table created successfully");
+	return table;
 }
