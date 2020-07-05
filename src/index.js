@@ -3,9 +3,10 @@ import Model from "./model";
 import schema from "./schema";
 
 export default class CRUDe {
-	constructor(dbDetails = null) {
+	constructor(dbDetails = null, debug = false) {
 		this.conn = pool(dbDetails);
 		this.client = null;
+		this.debug = debug;
 	}
 
 	connect(dbDetails) {
@@ -20,12 +21,8 @@ export default class CRUDe {
 		return this.conn.connect(params);
 	}
 
-	async query(params) {
-		return await this.conn.query(params);
-	}
-
 	async createSchema(table, columns) {
-		return await schema(table, columns, this.conn);
+		return await schema(table, columns, this);
 	}
 
 	async createModel(modelName, tableName) {
@@ -36,9 +33,7 @@ export default class CRUDe {
 				constructor(fields) {
 					super(tableName, crude);
 
-					if (fields) {
-						return this.insert(fields);
-					}
+					return this.insert(fields);
 				}
 
 				static get table() {
@@ -46,7 +41,11 @@ export default class CRUDe {
 				}
 
 				static get conn() {
-					return crude;
+					return crude.conn;
+				}
+
+				static get debug() {
+					return crude.debug;
 				}
 			};
 

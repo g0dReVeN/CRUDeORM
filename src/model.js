@@ -3,9 +3,10 @@ import Record from "./record";
 import operatorEnum from "./enums/operatorEnum";
 
 export default class Model {
-	constructor(table, conn) {
+	constructor(table, crude) {
 		this.table = table;
-		this.conn = conn;
+		this.conn = crude.conn;
+		this.debug = crude.debug;
 	}
 
 	static whereBuilder(fields) {
@@ -35,20 +36,19 @@ export default class Model {
 			const query = {
 				text: `INSERT INTO ${this.table}(${keys.join(",")})
 						VALUES(${keys.reduce((acc, key, i) => {
-							if (i > 0) { acc += `, $${i + 1}`; }
+							if (i > 0) {
+								acc += `, $${i + 1}`;
+							}
 							return acc;
-						}, '$1')})
+						}, "$1")})
 						RETURNING *`,
 				values: Object.values(fields),
 			};
 
-			// return this.conn
-			// 	.query(query)
-			// 	.then((res) => {
-			// 		return new Record(this.table, res.rows[0], this.conn);
-			// 	})
-			// 	.catch((error) => console.error(error.stack));
 			const res = await this.conn.query(query);
+
+			if (this.debug) console.log("Data inserted successfully");
+
 			return new Record(this.table, res.rows[0], this.conn);
 		} catch (error) {
 			console.error(error.stack);
@@ -70,10 +70,9 @@ export default class Model {
 				values: Object.values(flatten(fields)),
 			};
 
-			return this.conn
-				.query(query)
-				.then((res) => console.log("Data deleted successfully"))
-				.catch((error) => console.error(error.stack));
+			await this.conn.query(query);
+
+			if (this.debug) console.log("Data deleted successfully");
 		} catch (error) {
 			console.error(error.stack);
 		}
@@ -94,20 +93,21 @@ export default class Model {
 				values: Object.values(flatten(fields)),
 			};
 
-			return this.conn
-				.query(query)
-				.then((res) => {
-					if (singleRecord && res.rows.length) {
-						return new Record(this.table, res.rows[0], this.conn);
-					} else if (res.rows.length) {
-						return res.rows.reduce((acc, curr) => {
-							return acc.push(new Record(this.table, curr, this.conn));
-						}, []);
-					} else {
-						return null;
-					}
-				})
-				.catch((error) => console.error(error.stack));
+			const res = await this.conn.query(query);
+
+			if (res.rows.length) {
+				if (this.debug) console.log("Data found successfully");
+
+				if (singleRecord) {
+					return new Record(this.table, res.rows[0], this.conn);
+				} else {
+					return res.rows.reduce((acc, curr) => {
+						return acc.push(new Record(this.table, curr, this.conn));
+					}, []);
+				}
+			} else {
+				return null;
+			}
 		} catch (error) {
 			console.error(error.stack);
 		}

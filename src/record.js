@@ -1,7 +1,8 @@
 export default class Record {
-	constructor(table, fields, conn) {
+	constructor(table, fields, crude) {
 		this.__table = table;
-		this.__conn = conn;
+        this.__conn = crude.conn;
+        this.__debug = crude.debug;
 		this.__attributeList = Object.keys(fields);
 		this.__attributeListSize = this.__attributeList.length;
 
@@ -36,8 +37,10 @@ export default class Record {
 			};
                 
 
-			await this.conn.query(query);
-			console.log("Data saved successfully");
+            await this.__conn.query(query);
+            
+            if (this.__debug)
+			    console.log("Data saved successfully");
 		} catch (error) {
 			console.error(error.stack);
 		}
