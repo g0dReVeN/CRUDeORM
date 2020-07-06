@@ -37,7 +37,7 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 					? `DEFAULT ${value.default}`
 					: ``;
 				const __check = value.hasOwnProperty("check")
-					? `CHECK ${value.check}`
+					? `CHECK (${value.check})`
 					: ``;
 				const __unique =
 					value.hasOwnProperty("unique ") && value.unique === true
