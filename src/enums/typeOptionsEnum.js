@@ -1,0 +1,21 @@
+export default Object.freeze({
+    $bool: 'BOOLEAN',
+    $varchar: "VARCHAR",
+    $char: "CHAR",
+    $text: "TEXT",
+    $int: "INT",
+    $serial: "SERIAL",
+    $si: "SMALLINT",
+    $float:  'FLOAT',
+    $real: 'REAL',
+    $numeric: 'NUMERIC',
+    $date: 'DATE',
+    $time: 'TIME',
+    $ts: 'TIMESTAMP',
+    $tsz: 'TIMESTAMPZ',
+    $interval: "INTERVAL",
+    $array: "ARRAY",
+    $json: 'JSON',
+    $jsonb: 'JSONB',
+    $uuid: 'UUID'
+});

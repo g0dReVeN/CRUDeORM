@@ -12,18 +12,18 @@ export default class Model {
 	static referenceBuilder(fields, index = { i: 0 }, concatentor = " AND ") {
 		const startPos = index.i;
 
-		return Object.entries(fields).reduce((acc, curr) => {
-			if (++index.i > startPos + 1) acc += concatentor;
+		return Object.entries(fields).reduce((ref, [key, value]) => {
+			if (++index.i > startPos + 1) ref += concatentor;
 
-			if (curr[1].constructor.name === 'Object') {
-				return (acc += Object.entries(curr[1]).reduce((acc2, curr2, j) => {
-					if (j > 0) acc2 += concatentor;
+			if (value.constructor.name === 'Object') {
+				return (ref += Object.entries(value).reduce((childRef, [childKey, childValue], j) => {
+					if (j > 0) childRef += concatentor;
 
-					return (acc2 += `${curr[0]} ${
-						operatorEnum[curr2[0]]
+					return (childRef += `${key} ${
+						operatorEnum[childKey]
 					} $${(index.i += j)}`);
 				}, ""));
-			} else return (acc += `${curr[0]} ${operatorEnum["$eq"]} $${index.i}`);
+			} else return (ref += `${key} ${operatorEnum["$eq"]} $${index.i}`);
 		}, "");
 	}
 
@@ -78,8 +78,8 @@ export default class Model {
 				if (singleRecord) {
 					return new Record(this.table, res.rows[0], this.conn);
 				} else {
-					return res.rows.reduce((acc, curr) => {
-						return acc.push(new Record(this.table, curr, this.conn));
+					return res.rows.reduce((acc, value) => {
+						return acc.push(new Record(this.table, value, this.conn));
 					}, []);
 				}
 			} else {

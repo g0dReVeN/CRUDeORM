@@ -21,8 +21,8 @@ export default class CRUDe {
 		await this.conn.end();
 	}
 
-	async createSchema(table, columns) {
-		return await schema(table, columns, this);
+	async createSchema(table, columns, constraints = null) {
+		return await schema(table, columns, constraints, this);
 	}
 
 	createModel(modelName, tableName) {
