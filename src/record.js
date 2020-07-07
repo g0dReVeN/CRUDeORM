@@ -3,7 +3,7 @@ export default class Record {
 		this.__table = table;
 		this.__conn = crude.conn;
 		this.__debug = crude.debug;
-		this.__savable = true;
+		this.__loadable = true;
 		this.__attributeList = Object.keys(fields);
 		this.__attributeListSize = this.__attributeList.length;
 
@@ -29,7 +29,7 @@ export default class Record {
 
 	async save() {
 		try {
-			if (!this.__savable)
+			if (!this.__loadable)
 				throw "This instance can longer be saved. Initialise new instance.";
 
 			let i = 0;
@@ -59,18 +59,21 @@ export default class Record {
 
 	async with(joinTable, innerId = null, outerId = null) {
 		try {
+			if (!this.__loadable)
+				throw "This instance can longer be loaded. Initialise new instance.";
+
 			const inner = innerId ? innerId : `${this.__table}.${joinTable}_id`;
 			const outer = outerId ? outerId : `${joinTable}.id`;
 
-			const sql = `SELECT * FROM ${this.__table} INNER JOIN ${joinTable} ON ${inner} = ${outer};`;
+			const sql = `SELECT * FROM ${this.__table} INNER JOIN ${joinTable} ON ${inner} = ${outer} WHERE ${this.__table}.id = ${this.id};`;
 
 			const res = await this.__conn.query(sql);
 
 			if (this.__debug) console.log("Data loaded successfully");
 
 			const newKeys = Object.keys(res.row[0]);
-			this.__savable = false;
-			this.__attributeList = [...this.__attributeList, newKeys];
+			this.__loadable = false;
+			this.__attributeList = newKeys;
 			this.__attributeListSize = this.__attributeList.length;
 
 			newKeys.forEach((key) => {

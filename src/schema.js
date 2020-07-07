@@ -8,10 +8,16 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 			(cons, [key, value]) => {
 				if (!value.hasOwnProperty("type")) throw "Missing Column Type";
 				if (
-					["$varchar", "$char", "$float"].includes(value.type) &&
-					!value.hasOwnProperty("typeSize")
+					value.hasOwnProperty("typeSize") &&
+					value.hasOwnProperty("typeArray")
 				)
-					throw "Missing Type Size";
+					throw "Can not have both typeSize and typeArray";
+				if (
+					["$varchar", "$char", "$float"].includes(value.type) &&
+					value.hasOwnProperty("typeSize") &&
+					(isNaN(value.typeSize) || Number(value.typeSize) < 1)
+				)
+					throw "Type Size Error";
 				if (
 					value.type === "$numeric" &&
 					value.hasOwnProperty("typeSize") &&
@@ -19,8 +25,8 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 						value.typeSize.length !== 2 ||
 						isNaN(value.typeSize[0]) ||
 						isNaN(value.typeSize[1]) ||
-						value.typeSize[0] < 1 ||
-						value.typeSize[1] < 1)
+						Number(value.typeSize[0]) < 1 ||
+						Number(value.typeSize[1]) < 1)
 				)
 					throw "Type Size Error";
 
@@ -29,6 +35,10 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 						? `(${value.typeSize[0]}, ${value.typeSize[1]})`
 						: `(${value.typeSize})`
 					: ``;
+				const __typeArray = value.hasOwnProperty("typeArray")
+					? `${value.typeSize}`
+					: ``;
+				const __typeQuantifier = __typeSize === `` ? __typeArray : __typeSize;
 				const __null =
 					value.hasOwnProperty("null") && value.null === true
 						? `NULL`
@@ -40,11 +50,11 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 					? `CHECK (${value.check})`
 					: ``;
 				const __unique =
-					value.hasOwnProperty("unique ") && value.unique === true
+					value.hasOwnProperty("unique") && value.unique
 						? `UNIQUE`
 						: ``;
 				const __primaryKey =
-					value.hasOwnProperty("primaryKey ") && value.primaryKey === true
+					value.hasOwnProperty("primaryKey") && value.primaryKey
 						? `PRIMARY KEY`
 						: ``;
 
@@ -52,7 +62,7 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 					cons +
 					`${cons !== "" ? "," : ""} ${key} ${
 						typeOptions[value.type]
-					} ${__typeSize} ${__null} ${__default} ${__check} ${__unique} ${__primaryKey}`
+					}${__typeQuantifier} ${__null} ${__default} ${__check} ${__unique} ${__primaryKey}`
 				);
 			},
 			""

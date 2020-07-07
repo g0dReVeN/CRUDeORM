@@ -165,4 +165,33 @@ export default class Model {
 	static async destroyById(fields, constraints = "") {
 		return this.destroy({ id: fields }, constraints);
 	}
+
+	async with(joinTable, whereFields = null, innerId = null, outerId = null) {
+		try {
+			const inner = innerId ? innerId : `${this.table}.${joinTable}_id`;
+			const outer = outerId ? outerId : `${joinTable}.id`;
+			const where = whereFields ? `WHERE ${this.referenceBuilder(whereFields)}` : ``;
+
+			const query = { 
+				text:`SELECT * FROM ${this.table} INNER JOIN ${joinTable} ON ${inner} = ${outer} ${where};`,
+				values: Object.values(flatten(whereFields))
+			}
+
+			const res = await this.conn.query(query);
+
+			if (this.debug) console.log("Data loaded successfully");
+
+			if (res.rows.length) {
+				return res.rows.reduce((acc, value) => {
+					const record = new Record(`${this.table}_${joinTable}`, value, this.conn);
+					record.__loadable = false;
+					return acc.push(record);
+				}, []);
+			} else {
+				return null;
+			}
+		} catch (error) {
+			console.error(error.stack);
+		}
+	}
 }

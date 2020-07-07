@@ -3,7 +3,7 @@ export default Object.freeze({
     $varchar: "VARCHAR",
     $char: "CHAR",
     $text: "TEXT",
-    $int: "INT",
+    $int: "INTEGER",
     $serial: "SERIAL",
     $si: "SMALLINT",
     $float:  'FLOAT',
@@ -14,7 +14,6 @@ export default Object.freeze({
     $ts: 'TIMESTAMP',
     $tsz: 'TIMESTAMPZ',
     $interval: "INTERVAL",
-    $array: "ARRAY",
     $json: 'JSON',
     $jsonb: 'JSONB',
     $uuid: 'UUID'
