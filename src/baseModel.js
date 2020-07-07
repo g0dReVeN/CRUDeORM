@@ -79,7 +79,7 @@ export default class Model {
 					return new Record(this.table, res.rows[0], this.conn);
 				} else {
 					return res.rows.reduce((acc, value) => {
-						return acc.push(new Record(this.table, value, this.conn));
+						return [new Record(this.table, value, this.conn), ...acc]
 					}, []);
 				}
 			} else {
@@ -185,7 +185,7 @@ export default class Model {
 				return res.rows.reduce((acc, value) => {
 					const record = new Record(`${this.table}_${joinTable}`, value, this.conn);
 					record.__loadable = false;
-					return acc.push(record);
+					return [record, ...acc];
 				}, []);
 			} else {
 				return null;

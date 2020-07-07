@@ -97,7 +97,7 @@ export default class Record {
 
 			if (res.rows.length) {
 				return res.rows.reduce((acc, value) => {
-					return acc.push(new Record(relatedTable, value, this.__conn));
+					return [new Record(relatedTable, value, this.__conn), ...acc]
 				}, []);
 			} else {
 				return null;
