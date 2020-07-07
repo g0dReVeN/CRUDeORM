@@ -36,7 +36,7 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 						: `(${value.typeSize})`
 					: ``;
 				const __typeArray = value.hasOwnProperty("typeArray")
-					? `${value.typeSize}`
+					? `${value.typeArray}`
 					: ``;
 				const __typeQuantifier = __typeSize === `` ? __typeArray : __typeSize;
 				const __null =
