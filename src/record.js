@@ -65,7 +65,7 @@ export default class Record {
 			const inner = innerId ? innerId : `${this.__table}.${joinTable}_id`;
 			const outer = outerId ? outerId : `${joinTable}.id`;
 
-			const sql = `SELECT * FROM ${this.__table} INNER JOIN ${joinTable} ON ${inner} = ${outer} WHERE ${this.__table}.id = ${this.id};`;
+			const sql = `SELECT * FROM ${this.__table} INNER JOIN ${joinTable} ON ${inner} = ${outer} WHERE ${this.__table}.id = ${this.id}`;
 
 			const res = await this.__conn.query(sql);
 
@@ -89,7 +89,7 @@ export default class Record {
 			const inner = primaryKey ? primaryKey : `id`;
 			const outer = foreignKey ? foreignKey : `${this.__table}_id`;
 
-			const sql = `SELECT * FROM ${relatedTable} WHERE ${outer} = ${this[inner]};`;
+			const sql = `SELECT * FROM ${relatedTable} WHERE ${outer} = ${this[inner]}`;
 
 			const res = await this.__conn.query(sql);
 

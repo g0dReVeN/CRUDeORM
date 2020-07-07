@@ -15,14 +15,17 @@ export default class Model {
 		return Object.entries(fields).reduce((ref, [key, value]) => {
 			if (++index.i > startPos + 1) ref += concatentor;
 
-			if (value.constructor.name === 'Object') {
-				return (ref += Object.entries(value).reduce((childRef, [childKey, childValue], j) => {
-					if (j > 0) childRef += concatentor;
+			if (value.constructor.name === "Object") {
+				return (ref += Object.entries(value).reduce(
+					(childRef, [childKey, childValue], j) => {
+						if (j > 0) childRef += concatentor;
 
-					return (childRef += `${key} ${
-						operatorEnum[childKey]
-					} $${(index.i += j)}`);
-				}, ""));
+						return (childRef += `${key} ${
+							operatorEnum[childKey]
+						} $${(index.i += j)}`);
+					},
+					""
+				));
 			} else return (ref += `${key} ${operatorEnum["$eq"]} $${index.i}`);
 		}, "");
 	}
@@ -79,7 +82,7 @@ export default class Model {
 					return new Record(this.table, res.rows[0], this.conn);
 				} else {
 					return res.rows.reduce((acc, value) => {
-						return [new Record(this.table, value, this.conn), ...acc]
+						return [new Record(this.table, value, this.conn), ...acc];
 					}, []);
 				}
 			} else {
@@ -170,12 +173,16 @@ export default class Model {
 		try {
 			const inner = innerId ? innerId : `${this.table}.${joinTable}_id`;
 			const outer = outerId ? outerId : `${joinTable}.id`;
-			const where = whereFields ? `WHERE ${this.referenceBuilder(whereFields)}` : ``;
+			const where = whereFields
+				? `WHERE ${this.referenceBuilder(whereFields)}`
+				: ``;
 
-			const query = { 
-				text:`SELECT * FROM ${this.table} INNER JOIN ${joinTable} ON ${inner} = ${outer} ${where};`,
-				values: Object.values(flatten(whereFields))
-			}
+			const query = whereFields
+				? {
+						text: `SELECT * FROM ${this.table} INNER JOIN ${joinTable} ON ${inner} = ${outer} ${where}`,
+						values: Object.values(flatten(whereFields)),
+				  }
+				: `SELECT * FROM ${this.table} INNER JOIN ${joinTable} ON ${inner} = ${outer}`;
 
 			const res = await this.conn.query(query);
 
@@ -183,7 +190,11 @@ export default class Model {
 
 			if (res.rows.length) {
 				return res.rows.reduce((acc, value) => {
-					const record = new Record(`${this.table}_${joinTable}`, value, this.conn);
+					const record = new Record(
+						`${this.table}_${joinTable}`,
+						value,
+						this.conn
+					);
 					record.__loadable = false;
 					return [record, ...acc];
 				}, []);
