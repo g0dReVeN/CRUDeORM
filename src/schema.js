@@ -34,29 +34,29 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 					? value.type === "$numeric"
 						? `(${value.typeSize[0]}, ${value.typeSize[1]})`
 						: `(${value.typeSize})`
-					: ``;
+					: "";
 				const __typeArray = value.hasOwnProperty("typeArray")
-					? `${value.typeSize}`
-					: ``;
-				const __typeQuantifier = __typeSize === `` ? __typeArray : __typeSize;
+					? value.typeArray
+					: "";
+				const __typeQuantifier = value.hasOwnProperty("typeSize")
+					? __typeSize
+					: __typeArray;
 				const __null =
 					value.hasOwnProperty("null") && value.null === true
-						? `NULL`
-						: `NOT NULL`;
+						? "NULL"
+						: "NOT NULL";
 				const __default = value.hasOwnProperty("default")
 					? `DEFAULT ${value.default}`
-					: ``;
+					: "";
 				const __check = value.hasOwnProperty("check")
 					? `CHECK (${value.check})`
-					: ``;
+					: "";
 				const __unique =
-					value.hasOwnProperty("unique") && value.unique
-						? `UNIQUE`
-						: ``;
+					value.hasOwnProperty("unique") && value.unique ? "UNIQUE" : "";
 				const __primaryKey =
 					value.hasOwnProperty("primaryKey") && value.primaryKey
-						? `PRIMARY KEY`
-						: ``;
+						? "PRIMARY KEY"
+						: "";
 
 				return (
 					cons +
