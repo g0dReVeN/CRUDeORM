@@ -60,7 +60,12 @@ export default class Model {
 		}
 	}
 
-	static async find(fields, constraints = "", singleRecord = false) {
+	static async find(
+		fields,
+		constraints = "",
+		andQuery = true,
+		singleRecord = false
+	) {
 		try {
 			if (Object.keys(fields).length < 1) {
 				throw "Find parameters less than 1";
@@ -68,7 +73,9 @@ export default class Model {
 
 			const query = {
 				text: `SELECT * FROM ${this.table} WHERE ${this.referenceBuilder(
-					fields
+					fields,
+					{ i: 0 },
+					andQuery ? " AND " : " OR "
 				)} ${constraints}`,
 				values: Object.values(flatten(fields)),
 			};
@@ -157,12 +164,12 @@ export default class Model {
 		}
 	}
 
-	static async findOne(fields, constraints = "") {
-		return this.find(fields, constraints + " LIMIT 1", true);
+	static async findOne(fields, constraints = "", andQuery = true) {
+		return this.find(fields, constraints + " LIMIT 1", andQuery, true);
 	}
 
-	static async findById(fields, constraints = "") {
-		return this.find({ id: fields }, constraints + " LIMIT 1", true);
+	static async findById(fields, constraints = "", andQuery = true) {
+		return this.find({ id: fields }, constraints + " LIMIT 1", andQuery, true);
 	}
 
 	static async destroyById(fields, constraints = "") {
