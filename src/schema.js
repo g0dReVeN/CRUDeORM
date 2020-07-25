@@ -36,11 +36,9 @@ export default async function (table, columnsFields, constraintsFields, crude) {
 						: `(${value.typeSize})`
 					: "";
 				const __typeArray = value.hasOwnProperty("typeArray")
-					? value.typeArray
-					: "";
-				const __typeQuantifier = value.hasOwnProperty("typeSize")
-					? __typeSize
-					: __typeArray;
+					? `${value.typeArray}`
+					: ``;
+				const __typeQuantifier = __typeSize === "" ? __typeArray : __typeSize;
 				const __null =
 					value.hasOwnProperty("null") && value.null === true
 						? "NULL"
